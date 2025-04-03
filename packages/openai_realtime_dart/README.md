@@ -5,9 +5,35 @@
 [![](https://dcbadge.vercel.app/api/server/x4qbhqecVR?style=flat)](https://discord.gg/x4qbhqecVR)
 [![MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://github.com/davidmigloz/langchain_dart/blob/main/LICENSE)
 
-Unofficial strongly-typed Dart client for the [OpenAI Realtime API](https://platform.openai.com/docs/guides/realtime), a stateful, event-based API that communicates over a WebSocket.
+Unofficial strongly-typed Dart client for the [OpenAI Realtime API](https://platform.openai.com/docs/guides/realtime), a stateful, event-based API that communicates over WebRTC or WebSocket.
 
 > Note: If you are looking for a client for the [REST OpenAI API](https://platform.openai.com/docs/api-reference), please check the [openai_dart](https://pub.dev/packages/openai_dart) package.
+
+## Fork Info
+This is a **WORK IN PROGRESS** fork of the WebSocket only...
+* https://github.com/davidmigloz/langchain_dart/tree/main/packages/openai_realtime_dart
+
+...that adds support for WebRTC.
+
+The original upstream `openai_realtime_dart` is a direct Dart port of OpenAI's [also WebSocket only] JavaScript:
+* https://github.com/openai/openai-realtime-api-beta/  
+  (FYI: If you are using OpenAI's JavaScript code you might want to give the third-part TypeScript ports https://github.com/transitive-bullshit/openai-realtime-api and/or https://github.com/activescott/typescript-openai-realtime-api a look)
+
+All of the JavaScript and Dart classes match perfectly:
+| `openai-realtime-api-beta` | `openai_realtime_dart` |
+| ---------- | ---- |
+| [api.js](https://github.com/openai/openai-realtime-api-beta/blob/main/lib/api.js) | [api.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/openai_realtime_dart/lib/src/api.dart) |
+| [client.js](https://github.com/openai/openai-realtime-api-beta/blob/main/lib/client.js) | [client.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/openai_realtime_dart/lib/src/client.dart) |
+| [conversation.js](https://github.com/openai/openai-realtime-api-beta/blob/main/lib/conversation.js) | [conversation.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/openai_realtime_dart/lib/src/conversation.dart) |
+| [event_handler.js](https://github.com/openai/openai-realtime-api-beta/blob/main/lib/event_handler.js) | [event_handler.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/openai_realtime_dart/lib/src/event_handler.dart) |
+| [utils.js](https://github.com/openai/openai-realtime-api-beta/blob/main/lib/utils.js) | [utils.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/openai_realtime_dart/lib/src/utils.dart) |
+
+On 2025/02/07 I created a working PR to add WebRTC to the JavaScript code:
+* https://github.com/openai/openai-realtime-api-beta/pull/99/files
+
+This fork does to [`openai_realtime_dart`](https://github.com/davidmigloz/langchain_dart/blob/main/packages/openai_realtime_dart/) what I did to [`openai-realtime-api-beta`](https://github.com/openai/openai-realtime-api-beta).
+
+Once implemented and confirmed working I will open a PR to `openai_realtime_dart`.
 
 ## Table of contents
 
