@@ -24,9 +24,9 @@ void main() {
       client.on(RealtimeEventType.all, realtimeEvents.add);
 
       // Should connect to the RealtimeClient
-      final isConnected = await client.connect();
-      expect(isConnected, isTrue);
-      expect(client.isConnected(), isTrue);
+      final success = await client.connect();
+      expect(success, isTrue);
+      expect(client.isConnectingOrConnected, isTrue);
 
       // Should receive "session.created" and send "session.update"
       await client.waitForSessionCreated();
@@ -93,7 +93,7 @@ void main() {
 
       // Should disconnect from the RealtimeClient
       await client.disconnect();
-      expect(client.isConnected(), isFalse);
+      expect(client.isConnectingOrConnected, isFalse);
     });
   });
 }

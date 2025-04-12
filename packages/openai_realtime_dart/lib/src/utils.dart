@@ -2,7 +2,15 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'transports.dart';
+
 class RealtimeUtils {
+  RealtimeUtils._();
+
+  /// Default transport type for OpenAI Realtime API.
+  static const RealtimeTransportType defaultTransport =
+      RealtimeTransportType.websocket;
+
   /// Default model for OpenAI Realtime API.
   static const defaultModel = 'gpt-4o-realtime-preview';
 
@@ -21,5 +29,25 @@ class RealtimeUtils {
       (_) => chars[random.nextInt(chars.length)],
     ).join('');
     return '$prefix$str';
+  }
+
+  static bool isInformational(int requestCode) {
+    return requestCode >= 100 && requestCode <= 199;
+  }
+
+  static bool isSuccessful(int requestCode) {
+    return requestCode >= 200 && requestCode <= 299;
+  }
+
+  static bool isRedirection(int requestCode) {
+    return requestCode >= 300 && requestCode <= 399;
+  }
+
+  static bool isClientError(int requestCode) {
+    return requestCode >= 400 && requestCode <= 499;
+  }
+
+  static bool isServerError(int requestCode) {
+    return requestCode >= 500 && requestCode <= 999;
   }
 }
