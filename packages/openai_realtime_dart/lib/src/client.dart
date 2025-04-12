@@ -10,6 +10,7 @@ import 'conversation.dart';
 import 'event_handler.dart';
 import 'schema/generated/schema/schema.dart';
 import 'schema/schema.dart';
+import 'transports.dart';
 import 'utils.dart';
 
 final _log = Logger('openai_realtime_dart.api');
@@ -30,11 +31,13 @@ final _log = Logger('openai_realtime_dart.api');
 class RealtimeClient extends RealtimeEventHandler {
   /// Create a new [RealtimeClient] instance.
   RealtimeClient({
-    final String url = 'wss://api.openai.com/v1/realtime',
+    final RealtimeTransportType? transportType,
+    final String? url,
     final String? apiKey,
     final bool debug = false,
-    final bool dangerouslyAllowAPIKeyInBrowser = true,
+    final bool dangerouslyAllowAPIKeyInBrowser = false,
   })  : realtime = RealtimeAPI(
+          transportType: transportType,
           url: url,
           apiKey: apiKey,
           debug: debug,
@@ -60,7 +63,7 @@ class RealtimeClient extends RealtimeEventHandler {
   /// Whether the session has been created.
   bool sessionCreated = false;
 
-  /// The input audio buffer.
+  /// The input audio buffer; only used by WebSocket.
   Uint8List inputAudioBuffer = Uint8List(0);
 
   void _resetConfig() {
@@ -234,7 +237,7 @@ class RealtimeClient extends RealtimeEventHandler {
 
   /// Tells us whether the realtime socket is connected and the session has
   /// started.
-  bool isConnected() => realtime.isConnected();
+  bool get isConnectingOrConnected => realtime.isConnectingOrConnected;
 
   /// Resets the client instance entirely: disconnects and clears active config.
   Future<void> reset() async {
@@ -245,7 +248,7 @@ class RealtimeClient extends RealtimeEventHandler {
     _addApiEventHandlers();
   }
 
-  /// Connects to the Realtime WebSocket API.
+  /// Connects to the Realtime API.
   /// Updates session config and conversation config.
   ///
   /// [model] specifies which model to use. You can find the list of available
@@ -253,19 +256,22 @@ class RealtimeClient extends RealtimeEventHandler {
   Future<bool> connect({
     final String model = RealtimeUtils.defaultModel,
   }) async {
-    if (isConnected()) {
+    if (isConnectingOrConnected) {
       throw Exception('Already connected, use .disconnect() first');
     }
-    final connected = await realtime.connect(model: model);
-    if (connected) {
+    final success = await realtime.connect(
+      model: model,
+      sessionConfig: sessionConfig,
+    );
+    if (success) {
       await updateSession();
     }
-    return connected;
+    return success;
   }
 
   /// Waits for a `session.created` event to be executed before proceeding.
   Future<bool> waitForSessionCreated() async {
-    if (!isConnected()) {
+    if (!isConnectingOrConnected) {
       throw Exception('Not connected, use .connect() first');
     }
     while (!sessionCreated) {
@@ -277,10 +283,17 @@ class RealtimeClient extends RealtimeEventHandler {
   /// Disconnects from the Realtime API and clears the conversation history.
   Future<void> disconnect() async {
     sessionCreated = false;
-    if (realtime.isConnected()) {
+    if (isConnectingOrConnected) {
       await realtime.disconnect();
     }
     conversation.clear();
+  }
+
+  /// Send event to the Realtime API
+  Future<void> send(RealtimeEvent event) async {
+    if (realtime.isDataChannelOpened) {
+      await realtime.send(event);
+    }
   }
 
   /// Gets the active turn detection mode.
@@ -317,7 +330,7 @@ class RealtimeClient extends RealtimeEventHandler {
 
   /// Deletes an item.
   Future<bool> deleteItem(String id) async {
-    await realtime.send(
+    await send(
       RealtimeEvent.conversationItemDelete(
         eventId: RealtimeUtils.generateId(),
         itemId: id,
@@ -379,19 +392,17 @@ class RealtimeClient extends RealtimeEventHandler {
           maxResponseOutputTokens ?? sessionConfig.maxResponseOutputTokens,
     );
 
-    if (realtime.isConnected()) {
-      await realtime.send(
-        RealtimeEvent.sessionUpdate(
-          eventId: RealtimeUtils.generateId(),
-          session: sessionConfig,
-        ),
-      );
-    }
+    await send(
+      RealtimeEvent.sessionUpdate(
+        eventId: RealtimeUtils.generateId(),
+        session: sessionConfig,
+      ),
+    );
   }
 
   /// Sends user message content and generates a response.
   Future<bool> sendUserMessageContent(List<ContentPart> content) async {
-    await realtime.send(
+    await send(
       RealtimeEvent.conversationItemCreate(
         eventId: RealtimeUtils.generateId(),
         item: Item.message(
@@ -406,9 +417,16 @@ class RealtimeClient extends RealtimeEventHandler {
   }
 
   /// Appends user audio to the existing audio buffer.
+  /// Only used by WebSocket transport; will throw an exception if used with
+  /// other transports.
   Future<bool> appendInputAudio(Uint8List audioData) async {
+    if (realtime.transportType != RealtimeTransportType.websocket) {
+      throw Exception(
+        'appendInputAudio is only supported for WebSocket transport',
+      );
+    }
     if (audioData.isNotEmpty) {
-      await realtime.send(
+      await send(
         RealtimeEvent.inputAudioBufferAppend(
           eventId: RealtimeUtils.generateId(),
           audio: base64.encode(audioData),
@@ -425,7 +443,7 @@ class RealtimeClient extends RealtimeEventHandler {
   /// Forces a model response generation.
   Future<bool> createResponse() async {
     if (getTurnDetectionType() == null && inputAudioBuffer.isNotEmpty) {
-      await realtime.send(
+      await send(
         RealtimeEvent.inputAudioBufferCommit(
           eventId: RealtimeUtils.generateId(),
         ),
@@ -433,7 +451,7 @@ class RealtimeClient extends RealtimeEventHandler {
       conversation.queueInputAudio(inputAudioBuffer);
       inputAudioBuffer = Uint8List(0);
     }
-    await realtime.send(
+    await send(
       RealtimeEvent.responseCreate(
         eventId: RealtimeUtils.generateId(),
       ),
@@ -446,7 +464,7 @@ class RealtimeClient extends RealtimeEventHandler {
   /// If no id provided, will simply call `cancel_generation` command.
   Future<ItemMessage?> cancelResponse(String? id, [int sampleCount = 0]) async {
     if (id == null) {
-      await realtime.send(
+      await send(
         RealtimeEvent.responseCancel(
           eventId: RealtimeUtils.generateId(),
         ),
@@ -467,7 +485,7 @@ class RealtimeClient extends RealtimeEventHandler {
           'Can only cancelResponse messages with role "assistant"',
         );
       }
-      await realtime.send(
+      await send(
         RealtimeEvent.responseCancel(
           eventId: RealtimeUtils.generateId(),
         ),
@@ -477,7 +495,7 @@ class RealtimeClient extends RealtimeEventHandler {
       if (audioIndex == -1) {
         throw Exception('Could not find audio on item to cancel');
       }
-      await realtime.send(
+      await send(
         RealtimeEvent.conversationItemTruncate(
           eventId: RealtimeUtils.generateId(),
           itemId: id,

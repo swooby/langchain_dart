@@ -14,14 +14,14 @@ void main() {
 
       // Connect with a custom model
       const customModel = 'gpt-4o-mini-realtime-preview';
-      final isConnected = await client.connect(model: customModel);
+      final success = await client.connect(model: customModel);
 
-      expect(isConnected, isTrue);
-      expect(client.isConnected(), isTrue);
+      expect(success, isTrue);
+      expect(client.isConnectingOrConnected, isTrue);
 
       // Clean up
       await client.disconnect();
-      expect(client.isConnected(), isFalse);
+      expect(client.isConnectingOrConnected, isFalse);
     });
 
     test('RealtimeClient test', () async {
@@ -40,16 +40,12 @@ void main() {
       expect(client, isNotNull);
       expect(client.realtime, isNotNull);
       expect(client.conversation, isNotNull);
-      expect(
-        client.realtime.apiKey,
-        equals(Platform.environment['OPENAI_API_KEY']),
-      );
 
       // Should connect to the RealtimeClient
-      final isConnected = await client.connect();
+      final success = await client.connect();
 
-      expect(isConnected, isTrue);
-      expect(client.isConnected(), isTrue);
+      expect(success, isTrue);
+      expect(client.isConnectingOrConnected, isTrue);
 
       // Should receive "session.created" and send "session.update"
       await client.waitForSessionCreated();
@@ -100,7 +96,7 @@ void main() {
 
       // Should close the RealtimeClient connection
       await client.disconnect();
-      expect(client.isConnected(), isFalse);
+      expect(client.isConnectingOrConnected, isFalse);
     });
 
     test('Tool calling test', timeout: const Timeout(Duration(minutes: 5)),
@@ -150,8 +146,8 @@ void main() {
       );
       client.on(RealtimeEventType.all, realtimeEvents.add);
 
-      final isConnected = await client.connect();
-      expect(isConnected, isTrue);
+      final success = await client.connect();
+      expect(success, isTrue);
 
       // Should receive "session.created" and send "session.update"
       await client.waitForSessionCreated();
@@ -210,7 +206,7 @@ void main() {
 
       // Should close the RealtimeClient connection
       await client.disconnect();
-      expect(client.isConnected(), isFalse);
+      expect(client.isConnectingOrConnected, isFalse);
     });
   });
 }

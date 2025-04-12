@@ -15,7 +15,7 @@ void main() {
     });
 
     tearDown(() async {
-      if (realtime.isConnected()) {
+      if (realtime.isConnectingOrConnected) {
         await realtime.disconnect();
       }
     });
@@ -23,7 +23,6 @@ void main() {
     test('Should instantiate the RealtimeAPI with no apiKey', () {
       final apiWithoutKey = RealtimeAPI(debug: false);
       expect(apiWithoutKey, isNotNull);
-      expect(apiWithoutKey.apiKey, isNull);
     });
 
     test('Should fail to connect to the RealtimeAPI with no apiKey', () async {
@@ -42,32 +41,31 @@ void main() {
 
     test('Should instantiate the RealtimeAPI', () {
       expect(realtime, isNotNull);
-      expect(realtime.apiKey, equals(Platform.environment['OPENAI_API_KEY']));
     });
 
     test('Should connect to the RealtimeAPI', () async {
-      final isConnected = await realtime.connect();
+      final success = await realtime.connect();
 
-      expect(isConnected, isTrue);
-      expect(realtime.isConnected(), isTrue);
+      expect(success, isTrue);
+      expect(realtime.isConnectingOrConnected, isTrue);
     });
 
     test('Should close the RealtimeAPI connection', () async {
       await realtime.connect();
       await realtime.disconnect();
 
-      expect(realtime.isConnected(), isFalse);
+      expect(realtime.isConnectingOrConnected, isFalse);
     });
 
     test('Should handle multiple connections and disconnections', () async {
       for (var i = 0; i < 3; i++) {
-        final isConnected = await realtime.connect();
-        expect(isConnected, isTrue, reason: 'Connection $i failed');
-        expect(realtime.isConnected(), isTrue, reason: 'Connection $i failed');
+        final success = await realtime.connect();
+        expect(success, isTrue, reason: 'Connection $i failed');
+        expect(realtime.isConnectingOrConnected, isTrue, reason: 'Connection $i failed');
 
         await realtime.disconnect();
         expect(
-          realtime.isConnected(),
+          realtime.isConnectingOrConnected,
           isFalse,
           reason: 'Disconnection $i failed',
         );

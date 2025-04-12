@@ -6,3 +6,5 @@ export 'src/client.dart';
 export 'src/conversation.dart';
 export 'src/event_handler.dart';
 export 'src/schema/schema.dart';
+export 'src/transports.dart';
+export 'src/utils.dart';

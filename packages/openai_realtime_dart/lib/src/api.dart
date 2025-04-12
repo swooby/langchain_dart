@@ -3,15 +3,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:logging/logging.dart';
-import 'package:web_socket_channel/status.dart' as status;
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'event_handler.dart';
 import 'schema/generated/schema/schema.dart';
+import 'transports.dart';
 import 'utils.dart';
-import 'web_socket/web_socket.dart';
-
-final _log = Logger('openai_realtime_dart.api');
 
 /// Thin wrapper over [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 /// to handle the communication with OpenAI Realtime API.
@@ -19,124 +15,86 @@ final _log = Logger('openai_realtime_dart.api');
 /// Dispatches events as `server.{event_name}` and `client.{event_name}`,
 /// respectively.
 class RealtimeAPI extends RealtimeEventHandler {
+  static final _logger = Logger('openai_realtime_dart.api');
+
   /// Create a new [RealtimeAPI] instance.
   RealtimeAPI({
-    this.url = 'wss://api.openai.com/v1/realtime',
-    this.apiKey,
+    RealtimeTransportType? transportType,
+    String? url,
+    String? apiKey,
+    bool dangerouslyAllowAPIKeyInBrowser = false,
     this.debug = false,
-    this.dangerouslyAllowAPIKeyInBrowser = true,
   }) {
-    if (apiKey != null && !dangerouslyAllowAPIKeyInBrowser) {
-      throw Exception(
-        'Cannot provide API key in the browser without '
-        '"dangerouslyAllowAPIKeyInBrowser" set to true',
-      );
-    }
+    _transport = RealtimeTransport(
+      transportType: transportType ?? RealtimeUtils.defaultTransport,
+      url: url,
+      apiKey: apiKey,
+      dangerouslyAllowAPIKeyInBrowser: dangerouslyAllowAPIKeyInBrowser,
+      debug: debug,
+    );
+    _transport.onTextMessage.listen((message) async {
+      final messageObject = json.decode(message) as Map<String, dynamic>;
+      await _receive(messageObject);
+    });
   }
 
-  /// The base URL of the Realtime API.
-  final String url;
+  late final RealtimeTransport _transport;
 
-  /// The API key to authenticate with the Realtime API.
-  final String? apiKey;
+  /// The [RealtimeTransportType] used by the Realtime API.
+  RealtimeTransportType get transportType => _transport.transportType;
 
   /// Whether to log debug messages.
   final bool debug;
 
-  /// Whether to allow the API key to be used in the browser.
-  final bool dangerouslyAllowAPIKeyInBrowser;
+  /// Tells us whether or not the Realtime API server is connecting or connected.
+  bool get isConnectingOrConnected => _transport.isConnectingOrConnected;
 
-  WebSocketChannel? _ws;
-  var _model = '';
+  /// Tells us whether or not the Realtime API server data channel is opened.
+  bool get isDataChannelOpened => _transport.isDataChannelOpened;
+
   StreamSubscription<dynamic>? _logSubscription;
 
-  /// Tells us whether or not the WebSocket is connected.
-  bool isConnected() => _ws != null;
-
-  /// Connects to Realtime API Websocket Server.
-  ///
-  /// [model] specifies which model to use. You can find the list of available
-  /// models [here](https://platform.openai.com/docs/models).
-  Future<bool> connect({
-    final String model = RealtimeUtils.defaultModel,
-  }) async {
-    if (isConnected()) {
-      throw Exception('Already connected');
-    }
-
-    _configLogger();
-
-    _model = model;
-    final uri = Uri.parse('$url?model=$_model');
-
-    try {
-      _ws = connectWebSocket(uri, apiKey);
-
-      // Wait for the connection to be established
-      await _ws!.ready;
-
-      _log.info('Connected to "$url"');
-
-      _ws!.stream.listen(
-        (data) {
-          final message = json.decode(data) as Map<String, dynamic>;
-          receive(message);
-        },
-        onError: (dynamic error) {
-          _log.severe('Error', error);
-          dispatch(
-            RealtimeEventType.close,
-            RealtimeEvent.close(
-              eventId: RealtimeUtils.generateId(),
-              error: true,
-            ),
-          );
-        },
-        onDone: () {
-          _log.info('Disconnected from "$url"');
-          dispatch(
-            RealtimeEventType.close,
-            RealtimeEvent.close(
-              eventId: RealtimeUtils.generateId(),
-              error: false,
-            ),
-          );
-        },
-      );
-
-      return true;
-    } catch (e) {
-      _log.severe('Could not connect to "$url"', e);
-      return false;
+  /// Log messages when debug is enabled
+  void _log(Level logLevel, String message) {
+    if (debug) {
+      _logger.log(logLevel, message);
     }
   }
 
-  void _configLogger() {
-    if (debug) {
-      final logger = Logger('openai_realtime_dart');
-      _logSubscription = logger.onRecord.listen((record) {
-        if (record.level >= Level.INFO) {
-          print(
-            '[${record.loggerName}/${record.time.toIso8601String()}]: '
-            '${record.message} ${record.error ?? ""}',
-          );
-        }
-      });
-    }
+  /// Connects to Realtime API Server.
+  ///
+  /// `model` is specified separately from `sessionConfig` because the
+  /// generated `SessionConfig` class does not have the `model` property.
+  ///
+  /// The OpenAI docs clearly state that `model` is part of `SessionConfig`:
+  /// https://platform.openai.com/docs/api-reference/realtime-sessions/create
+  /// > Can be configured with the same session parameters as the
+  /// > `session.update` client event.
+  /// https://platform.openai.com/docs/api-reference/realtime-client-events/session/update
+  /// > However, note that once a session has been initialized with a particular
+  /// > model, it can’t be changed to another model using session.update.
+  ///
+  /// [model] specifies which model to use. You can find the list of available
+  /// models [here](https://platform.openai.com/docs/models).
+  ///
+  /// [sessionConfig] is a [SessionConfig] object that contains the configuration
+  /// for the session; ignored by websocket transport.
+  Future<bool> connect({
+    final String model = RealtimeUtils.defaultModel,
+    final SessionConfig? sessionConfig,
+  }) {
+    return _transport.connect(model: model, sessionConfig: sessionConfig);
   }
 
   /// Disconnects from Realtime API server.
   Future<void> disconnect() async {
-    if (_ws != null) {
-      await _ws!.sink.close(status.normalClosure);
-      _ws = null;
-    }
+    await _transport.disconnect();
     await _logSubscription?.cancel();
   }
 
-  /// Receives an event from WebSocket and dispatches as
+  /// Receives an event from transport and dispatches as
   /// "[RealtimeEventType]" and "[RealtimeEventType.serverAll]" events.
-  Future<void> receive(Map<String, dynamic> eventData) async {
+  Future<void> _receive(Map<String, dynamic> eventData) async {
     final event = RealtimeEvent.fromJson(eventData);
     _logEvent(event, fromClient: false);
     await dispatch(event.type, event);
@@ -144,10 +102,10 @@ class RealtimeAPI extends RealtimeEventHandler {
     await dispatch(RealtimeEventType.all, event);
   }
 
-  /// Sends an event to WebSocket and dispatches as "[RealtimeEventType]"
-  /// and "[RealtimeEventType.clientAll]" events.
+  /// Sends an event to Realtime API server and dispatches as
+  /// "[RealtimeEventType]" and "[RealtimeEventType.clientAll]" events.
   Future<void> send(RealtimeEvent event) async {
-    if (!isConnected()) {
+    if (!isDataChannelOpened) {
       throw Exception('RealtimeAPI is not connected');
     }
 
@@ -156,12 +114,12 @@ class RealtimeAPI extends RealtimeEventHandler {
     );
 
     _logEvent(finalEvent, fromClient: true);
+
     await dispatch(finalEvent.type, finalEvent);
     await dispatch(RealtimeEventType.clientAll, finalEvent);
     await dispatch(RealtimeEventType.all, finalEvent);
 
-    final data = json.encode(finalEvent.toJson());
-    _ws!.sink.add(data);
+    await _transport.send(finalEvent.toJson());
   }
 
   void _logEvent(
@@ -180,7 +138,9 @@ class RealtimeAPI extends RealtimeEventHandler {
         json.forEach((key, value) {
           if (key == 'audio' ||
               (key == 'delta' && json['type'] == 'response.audio.delta')) {
-            json[key] = 'base64-encoded-audio';
+            final base64EncodedAudio = value as String;
+            json[key] =
+                '${base64EncodedAudio.substring(0, 10)}...${base64EncodedAudio.substring(base64EncodedAudio.length - 10)}';
           } else {
             replaceAudioProperty(value);
           }
@@ -196,7 +156,7 @@ class RealtimeAPI extends RealtimeEventHandler {
     replaceAudioProperty(eventJson);
 
     final eventString = jsonEncode(eventJson);
-    _log.info(
+    _logger.info(
       '${fromClient ? 'sent' : 'received'}: ${event.type.name} $eventString',
     );
   }
