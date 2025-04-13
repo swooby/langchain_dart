@@ -50,6 +50,10 @@ enum RealtimeEventType {
   inputAudioBufferSpeechStarted,
   @JsonValue('input_audio_buffer.speech_stopped')
   inputAudioBufferSpeechStopped,
+  @JsonValue('output_audio_buffer.started')
+  outputAudioBufferStarted,
+  @JsonValue('output_audio_buffer.stopped')
+  outputAudioBufferStopped,
   @JsonValue('rate_limits.updated')
   rateLimitsUpdated,
   @JsonValue('response.audio.delta')

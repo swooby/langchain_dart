@@ -1063,6 +1063,8 @@ const _$RealtimeEventTypeEnumMap = {
       'input_audio_buffer.speech_started',
   RealtimeEventType.inputAudioBufferSpeechStopped:
       'input_audio_buffer.speech_stopped',
+  RealtimeEventType.outputAudioBufferStarted: 'output_audio_buffer.started',
+  RealtimeEventType.outputAudioBufferStopped: 'output_audio_buffer.stopped',
   RealtimeEventType.rateLimitsUpdated: 'rate_limits.updated',
   RealtimeEventType.responseAudioDelta: 'response.audio.delta',
   RealtimeEventType.responseAudioDone: 'response.audio.done',
@@ -1456,6 +1458,42 @@ Map<String, dynamic> _$$RealtimeEventInputAudioBufferSpeechStoppedImplToJson(
       'type': _$RealtimeEventTypeEnumMap[instance.type]!,
       'audio_end_ms': instance.audioEndMs,
       'item_id': instance.itemId,
+    };
+
+_$RealtimeEventOutputAudioBufferStartedImpl
+    _$$RealtimeEventOutputAudioBufferStartedImplFromJson(
+            Map<String, dynamic> json) =>
+        _$RealtimeEventOutputAudioBufferStartedImpl(
+          eventId: json['event_id'] as String,
+          type: $enumDecodeNullable(_$RealtimeEventTypeEnumMap, json['type']) ??
+              RealtimeEventType.outputAudioBufferStarted,
+          responseId: json['response_id'] as String,
+        );
+
+Map<String, dynamic> _$$RealtimeEventOutputAudioBufferStartedImplToJson(
+        _$RealtimeEventOutputAudioBufferStartedImpl instance) =>
+    <String, dynamic>{
+      'event_id': instance.eventId,
+      'type': _$RealtimeEventTypeEnumMap[instance.type]!,
+      'response_id': instance.responseId,
+    };
+
+_$RealtimeEventOutputAudioBufferStoppedImpl
+    _$$RealtimeEventOutputAudioBufferStoppedImplFromJson(
+            Map<String, dynamic> json) =>
+        _$RealtimeEventOutputAudioBufferStoppedImpl(
+          eventId: json['event_id'] as String,
+          type: $enumDecodeNullable(_$RealtimeEventTypeEnumMap, json['type']) ??
+              RealtimeEventType.outputAudioBufferStopped,
+          responseId: json['response_id'] as String,
+        );
+
+Map<String, dynamic> _$$RealtimeEventOutputAudioBufferStoppedImplToJson(
+        _$RealtimeEventOutputAudioBufferStoppedImpl instance) =>
+    <String, dynamic>{
+      'event_id': instance.eventId,
+      'type': _$RealtimeEventTypeEnumMap[instance.type]!,
+      'response_id': instance.responseId,
     };
 
 _$RealtimeEventRateLimitsUpdatedImpl
