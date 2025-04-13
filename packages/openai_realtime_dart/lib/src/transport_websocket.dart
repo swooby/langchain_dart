@@ -25,13 +25,13 @@ class RealtimeTransportWebSocket extends RealtimeTransport {
   /// [sessionConfig] ignored by websocket transport.
   @override
   Future<bool> connect({
-    final String model = RealtimeUtils.defaultModel,
+    final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
   }) async {
     final result = await super.connect(model: model);
     if (!result) return result;
     _log(Level.INFO, 'connect(model="$model", sessionConfig=$sessionConfig)');
-    final uri = Uri.parse('$url?model=$model');
+    final uri = Uri.parse('$url?model=${model.value}');
     try {
       _ws = connectWebSocket(uri, apiKey);
 

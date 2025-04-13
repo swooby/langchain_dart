@@ -13,7 +13,7 @@ void main() {
       );
 
       // Connect with a custom model
-      const customModel = 'gpt-4o-mini-realtime-preview';
+      const customModel = RealtimeModel.gpt4oMiniRealtimePreview;
       final success = await client.connect(model: customModel);
 
       expect(success, isTrue);

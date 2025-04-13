@@ -169,7 +169,7 @@ abstract class RealtimeTransport extends RealtimeEventHandler {
 
   /// Connect to the transport
   Future<bool> connect({
-    final String model = RealtimeUtils.defaultModel,
+    final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
   }) async {
     if (apiKey == null && url == defaultUrl) {
