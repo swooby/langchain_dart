@@ -901,6 +901,8 @@ components:
         - $ref: "#/components/schemas/RealtimeEventInputAudioBufferCommitted"
         - $ref: "#/components/schemas/RealtimeEventInputAudioBufferSpeechStarted"
         - $ref: "#/components/schemas/RealtimeEventInputAudioBufferSpeechStopped"
+        - $ref: "#/components/schemas/RealtimeEventOutputAudioBufferStarted"
+        - $ref: "#/components/schemas/RealtimeEventOutputAudioBufferStopped"
         - $ref: "#/components/schemas/RealtimeEventRateLimitsUpdated"
         - $ref: "#/components/schemas/RealtimeEventResponseAudioDelta"
         - $ref: "#/components/schemas/RealtimeEventResponseAudioDone"
@@ -950,6 +952,8 @@ components:
         - input_audio_buffer.committed
         - input_audio_buffer.speech_started
         - input_audio_buffer.speech_stopped
+        - output_audio_buffer.started
+        - output_audio_buffer.stopped
         - rate_limits.updated
         - response.audio.delta
         - response.audio.done
@@ -1125,6 +1129,48 @@ components:
           default: input_audio_buffer.commit
       required:
         - event_id
+    RealtimeEventOutputAudioBufferStarted:
+      type: object
+      description: |
+        NOT DOCUMENTED AT:
+        * https://platform.openai.com/docs/api-reference/realtime
+        * https://platform.openai.com/docs/api-reference/realtime-server-events
+        {"type":"output_audio_buffer.started","event_id":"event_1a4a887db5d046ad","response_id":"resp_BLuGn4MhODRU3qWrXWqhN"}
+      properties:
+        event_id:
+          type: string
+          description: The unique ID of the server event.
+        type:
+          $ref: "#/components/schemas/RealtimeEventType"
+          description: The type of the event.
+          default: output_audio_buffer.started
+        response_id:
+          type: string
+          description: The ID of the response that started the output audio buffer.
+      required:
+        - event_id
+        - response_id
+    RealtimeEventOutputAudioBufferStopped:
+      type: object
+      description: |
+        NOT DOCUMENTED AT:
+        * https://platform.openai.com/docs/api-reference/realtime
+        * https://platform.openai.com/docs/api-reference/realtime-server-events
+        {"type":"output_audio_buffer.stopped","event_id":"event_77c7da7ad9ea4dd1","response_id":"resp_BLvZlpkf8PohQXKMBzu7h"}
+      properties:
+        event_id:
+          type: string
+          description: The unique ID of the server event.
+        type:
+          $ref: "#/components/schemas/RealtimeEventType"
+          description: The type of the event.
+          default: output_audio_buffer.stopped
+        response_id:
+          type: string
+          description: The ID of the response that started the output audio buffer.
+      required:
+        - event_id
+        - response_id
     RealtimeEventResponseCancel:
       type: object
       description: |

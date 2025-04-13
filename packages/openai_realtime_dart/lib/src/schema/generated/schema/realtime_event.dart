@@ -500,6 +500,48 @@ sealed class RealtimeEvent with _$RealtimeEvent {
   }) = RealtimeEventInputAudioBufferSpeechStopped;
 
   // ------------------------------------------
+  // UNION: RealtimeEventOutputAudioBufferStarted
+  // ------------------------------------------
+
+  /// NOT DOCUMENTED AT:
+  /// * https://platform.openai.com/docs/api-reference/realtime
+  /// * https://platform.openai.com/docs/api-reference/realtime-server-events
+  /// {"type":"output_audio_buffer.started","event_id":"event_1a4a887db5d046ad","response_id":"resp_BLuGn4MhODRU3qWrXWqhN"}
+
+  @FreezedUnionValue('output_audio_buffer.started')
+  const factory RealtimeEvent.outputAudioBufferStarted({
+    /// The unique ID of the server event.
+    @JsonKey(name: 'event_id') required String eventId,
+
+    /// The type of the event.
+    @Default(RealtimeEventType.outputAudioBufferStarted) RealtimeEventType type,
+
+    /// The ID of the response that started the output audio buffer.
+    @JsonKey(name: 'response_id') required String responseId,
+  }) = RealtimeEventOutputAudioBufferStarted;
+
+  // ------------------------------------------
+  // UNION: RealtimeEventOutputAudioBufferStopped
+  // ------------------------------------------
+
+  /// NOT DOCUMENTED AT:
+  /// * https://platform.openai.com/docs/api-reference/realtime
+  /// * https://platform.openai.com/docs/api-reference/realtime-server-events
+  /// {"type":"output_audio_buffer.stopped","event_id":"event_77c7da7ad9ea4dd1","response_id":"resp_BLvZlpkf8PohQXKMBzu7h"}
+
+  @FreezedUnionValue('output_audio_buffer.stopped')
+  const factory RealtimeEvent.outputAudioBufferStopped({
+    /// The unique ID of the server event.
+    @JsonKey(name: 'event_id') required String eventId,
+
+    /// The type of the event.
+    @Default(RealtimeEventType.outputAudioBufferStopped) RealtimeEventType type,
+
+    /// The ID of the response that started the output audio buffer.
+    @JsonKey(name: 'response_id') required String responseId,
+  }) = RealtimeEventOutputAudioBufferStopped;
+
+  // ------------------------------------------
   // UNION: RealtimeEventRateLimitsUpdated
   // ------------------------------------------
 
@@ -1051,7 +1093,7 @@ sealed class RealtimeEvent with _$RealtimeEvent {
     @Default(RealtimeEventType.realtimeEvent) RealtimeEventType type,
 
     /// A Realtime API event.
-    /// Any of: [RealtimeEventConversationItemCreate], [RealtimeEventConversationItemDelete], [RealtimeEventConversationItemTruncate], [RealtimeEventInputAudioBufferAppend], [RealtimeEventInputAudioBufferClear], [RealtimeEventInputAudioBufferCommit], [RealtimeEventResponseCancel], [RealtimeEventResponseCreate], [RealtimeEventSessionUpdate], [RealtimeEventConversationCreated], [RealtimeEventConversationItemCreated], [RealtimeEventConversationItemDeleted], [RealtimeEventConversationItemInputAudioTranscriptionCompleted], [RealtimeEventConversationItemInputAudioTranscriptionFailed], [RealtimeEventConversationItemTruncated], [RealtimeEventError], [RealtimeEventInputAudioBufferCleared], [RealtimeEventInputAudioBufferCommitted], [RealtimeEventInputAudioBufferSpeechStarted], [RealtimeEventInputAudioBufferSpeechStopped], [RealtimeEventRateLimitsUpdated], [RealtimeEventResponseAudioDelta], [RealtimeEventResponseAudioDone], [RealtimeEventResponseAudioTranscriptDelta], [RealtimeEventResponseAudioTranscriptDone], [RealtimeEventResponseContentPartAdded], [RealtimeEventResponseContentPartDone], [RealtimeEventResponseCreated], [RealtimeEventResponseDone], [RealtimeEventResponseFunctionCallArgumentsDelta], [RealtimeEventResponseFunctionCallArgumentsDone], [RealtimeEventResponseOutputItemAdded], [RealtimeEventResponseOutputItemDone], [RealtimeEventResponseTextDelta], [RealtimeEventResponseTextDone], [RealtimeEventSessionCreated], [RealtimeEventSessionUpdated], [RealtimeEventClose], [RealtimeEventConversationInterrupted], [RealtimeEventConversationUpdated], [RealtimeEventConversationItemAppended], [RealtimeEventConversationItemCompleted], [RealtimeEventGeneric]
+    /// Any of: [RealtimeEventConversationItemCreate], [RealtimeEventConversationItemDelete], [RealtimeEventConversationItemTruncate], [RealtimeEventInputAudioBufferAppend], [RealtimeEventInputAudioBufferClear], [RealtimeEventInputAudioBufferCommit], [RealtimeEventResponseCancel], [RealtimeEventResponseCreate], [RealtimeEventSessionUpdate], [RealtimeEventConversationCreated], [RealtimeEventConversationItemCreated], [RealtimeEventConversationItemDeleted], [RealtimeEventConversationItemInputAudioTranscriptionCompleted], [RealtimeEventConversationItemInputAudioTranscriptionFailed], [RealtimeEventConversationItemTruncated], [RealtimeEventError], [RealtimeEventInputAudioBufferCleared], [RealtimeEventInputAudioBufferCommitted], [RealtimeEventInputAudioBufferSpeechStarted], [RealtimeEventInputAudioBufferSpeechStopped], [RealtimeEventOutputAudioBufferStarted], [RealtimeEventOutputAudioBufferStopped], [RealtimeEventRateLimitsUpdated], [RealtimeEventResponseAudioDelta], [RealtimeEventResponseAudioDone], [RealtimeEventResponseAudioTranscriptDelta], [RealtimeEventResponseAudioTranscriptDone], [RealtimeEventResponseContentPartAdded], [RealtimeEventResponseContentPartDone], [RealtimeEventResponseCreated], [RealtimeEventResponseDone], [RealtimeEventResponseFunctionCallArgumentsDelta], [RealtimeEventResponseFunctionCallArgumentsDone], [RealtimeEventResponseOutputItemAdded], [RealtimeEventResponseOutputItemDone], [RealtimeEventResponseTextDelta], [RealtimeEventResponseTextDone], [RealtimeEventSessionCreated], [RealtimeEventSessionUpdated], [RealtimeEventClose], [RealtimeEventConversationInterrupted], [RealtimeEventConversationUpdated], [RealtimeEventConversationItemAppended], [RealtimeEventConversationItemCompleted], [RealtimeEventGeneric]
     required RealtimeEvent event,
   }) = RealtimeEventGeneric;
 
@@ -1105,6 +1147,10 @@ enum RealtimeEventEnumType {
   inputAudioBufferSpeechStarted,
   @JsonValue('input_audio_buffer.speech_stopped')
   inputAudioBufferSpeechStopped,
+  @JsonValue('output_audio_buffer.started')
+  outputAudioBufferStarted,
+  @JsonValue('output_audio_buffer.stopped')
+  outputAudioBufferStopped,
   @JsonValue('rate_limits.updated')
   rateLimitsUpdated,
   @JsonValue('response.audio.delta')
