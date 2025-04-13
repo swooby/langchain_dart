@@ -42,7 +42,7 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
   /// for the session; ignored by websocket transport.
   @override
   Future<bool> connect({
-    final String model = RealtimeUtils.defaultModel,
+    final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
   }) async {
     final result = await super.connect(model: model);
@@ -51,7 +51,7 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
     final ephemeralApiToken = await _requestEphemeralApiToken(
       apiKey!,
       {
-        'model': model,
+        'model': model.value,
         ...?sessionConfig?.toJson(),
       },
     );
@@ -81,7 +81,7 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
   /// https://platform.openai.com/docs/guides/realtime-webrtc#connection-details
   Future<bool> _init(
     String ephemeralApiToken,
-    String model,
+    RealtimeModel model,
   ) async {
     _log(Level.FINER, 'init(...)');
     try {
@@ -146,7 +146,7 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
   }
 
   Future<RTCSessionDescription> _sendSdpToServer(
-    String model,
+    RealtimeModel model,
     String key,
     RTCSessionDescription offer,
   ) async {
@@ -168,7 +168,7 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
 
     final response = await _client.post(
       // Example: https://api.openai.com/v1/realtime?model=gpt-4o-mini-realtime-preview
-      Uri.parse('$url?model=$model'),
+      Uri.parse('$url?model=${model.value}'),
       headers: {
         'Authorization': 'Bearer $key',
         'Content-Type': 'application/sdp',

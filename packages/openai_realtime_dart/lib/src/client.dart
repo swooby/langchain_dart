@@ -254,7 +254,7 @@ class RealtimeClient extends RealtimeEventHandler {
   /// [model] specifies which model to use. You can find the list of available
   /// models [here](https://platform.openai.com/docs/models).
   Future<bool> connect({
-    final String model = RealtimeUtils.defaultModel,
+    final RealtimeModel model = RealtimeUtils.defaultModel,
   }) async {
     if (isConnectingOrConnected) {
       throw Exception('Already connected, use .disconnect() first');

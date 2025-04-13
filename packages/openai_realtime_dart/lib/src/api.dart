@@ -80,7 +80,7 @@ class RealtimeAPI extends RealtimeEventHandler {
   /// [sessionConfig] is a [SessionConfig] object that contains the configuration
   /// for the session; ignored by websocket transport.
   Future<bool> connect({
-    final String model = RealtimeUtils.defaultModel,
+    final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
   }) {
     return _transport.connect(model: model, sessionConfig: sessionConfig);

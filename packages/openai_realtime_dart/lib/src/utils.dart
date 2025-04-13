@@ -4,6 +4,16 @@ import 'dart:typed_data';
 
 import 'transports.dart';
 
+/// From https://platform.openai.com/docs/models
+enum RealtimeModel {
+  gpt4oRealtimePreview('gpt-4o-realtime-preview'),
+  gpt4oMiniRealtimePreview('gpt-4o-mini-realtime-preview');
+
+  final String value;
+
+  const RealtimeModel(this.value);
+}
+
 class RealtimeUtils {
   RealtimeUtils._();
 
@@ -12,7 +22,8 @@ class RealtimeUtils {
       RealtimeTransportType.websocket;
 
   /// Default model for OpenAI Realtime API.
-  static const defaultModel = 'gpt-4o-realtime-preview';
+  static const RealtimeModel defaultModel =
+      RealtimeModel.gpt4oMiniRealtimePreview;
 
   static Uint8List mergeUint8Lists(Uint8List left, Uint8List right) {
     final result = Uint8List(left.length + right.length);
