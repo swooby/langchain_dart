@@ -83,7 +83,10 @@ class RealtimeAPI extends RealtimeEventHandler {
     final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
   }) {
-    return _transport.connect(model: model, sessionConfig: sessionConfig);
+    return _transport.connect(
+      model: model,
+      sessionConfig: sessionConfig,
+    );
   }
 
   /// Disconnects from Realtime API server.
@@ -95,6 +98,7 @@ class RealtimeAPI extends RealtimeEventHandler {
   /// Receives an event from transport and dispatches as
   /// "[RealtimeEventType]" and "[RealtimeEventType.serverAll]" events.
   Future<void> _receive(Map<String, dynamic> eventData) async {
+    // NOTE: Will crash here if the event is unknown **to the generated code**.
     final event = RealtimeEvent.fromJson(eventData);
     _logEvent(event, fromClient: false);
     await dispatch(event.type, event);

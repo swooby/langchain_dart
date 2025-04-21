@@ -57,8 +57,8 @@ class LoggingHttpClient extends http.BaseClient {
         handleDone: (sink) {
           final responseBody = utf8.decode(responseBodyBytes);
           final length = responseBody.length;
-          _logger.info(
-              '<-- ${response.statusCode} $url (${endTime.difference(startTime).inMilliseconds}ms)');
+          final elapsedMs = endTime.difference(startTime).inMilliseconds;
+          _logger.info('<-- ${response.statusCode} $url (${elapsedMs}ms)');
           response.headers.entries
               .map((e) => _logger.info('${e.key}: ${e.value}'));
           LineSplitter.split(responseBody).forEach(_logger.info);
