@@ -71,7 +71,7 @@ class RealtimeClient extends RealtimeEventHandler {
     tools.clear();
     sessionConfig = const SessionConfig(
       modalities: [Modality.text, Modality.audio],
-      instructions: '',
+      instructions: null,
       voice: Voice.alloy,
       inputAudioFormat: AudioFormat.pcm16,
       outputAudioFormat: AudioFormat.pcm16,

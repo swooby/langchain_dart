@@ -19,15 +19,20 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
     required super.debug,
   }) : super._();
 
-  /// Logger for any http signaling.
-  /// NOTE/WARNING that enabling this will log the API key in the response.
-  static const bool _debugHttp = false;
-  final http.Client _client = _debugHttp
-      ? LoggingHttpClient(
-          client: http.Client(),
-          logger: RealtimeTransport._logger,
-        )
-      : http.Client();
+  /// Standard http client
+  static final _httpClient = http.Client();
+
+  /// Logging http client
+  static final _httpLoggingClient = LoggingHttpClient(
+    client: _httpClient,
+    logger: RealtimeTransport._logger,
+  );
+
+  /// Set to true to enable debug HTTP logging.
+  /// NOTE/WARNING that enabling this **WILL** log the API key in the request.
+  static const bool _debugHttp = true;
+
+  final http.Client _client = _debugHttp ? _httpLoggingClient : _httpClient;
 
   RTCPeerConnection? _peerConnection;
   RTCDataChannel? _dataChannel;
