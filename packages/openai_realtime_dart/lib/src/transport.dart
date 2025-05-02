@@ -171,6 +171,7 @@ abstract class RealtimeTransport extends RealtimeEventHandler {
   Future<bool> connect({
     final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
+    final Future<dynamic> Function()? getMicrophoneCallback,
   }) async {
     if (apiKey == null && url == defaultUrl) {
       _log(

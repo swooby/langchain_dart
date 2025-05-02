@@ -255,6 +255,7 @@ class RealtimeClient extends RealtimeEventHandler {
   /// models [here](https://platform.openai.com/docs/models).
   Future<bool> connect({
     final RealtimeModel model = RealtimeUtils.defaultModel,
+    final Future<dynamic> Function()? getMicrophoneCallback,
   }) async {
     if (isConnectingOrConnected) {
       throw Exception('Already connected, use .disconnect() first');
@@ -262,6 +263,7 @@ class RealtimeClient extends RealtimeEventHandler {
     final success = await realtime.connect(
       model: model,
       sessionConfig: sessionConfig,
+      getMicrophoneCallback: getMicrophoneCallback,
     );
     if (success) {
       await updateSession();

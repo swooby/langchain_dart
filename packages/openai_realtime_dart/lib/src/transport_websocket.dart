@@ -27,6 +27,7 @@ class RealtimeTransportWebSocket extends RealtimeTransport {
   Future<bool> connect({
     final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
+    final Future<dynamic> Function()? getMicrophoneCallback,
   }) async {
     final result = await super.connect(model: model);
     if (!result) return result;

@@ -49,6 +49,7 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
   Future<bool> connect({
     final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
+    final Future<dynamic> Function()? getMicrophoneCallback,
   }) async {
     final result = await super.connect(model: model);
     if (!result) return result;
@@ -60,7 +61,7 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
         ...?sessionConfig?.toJson(),
       },
     );
-    return _init(ephemeralApiToken, model);
+    return _init(ephemeralApiToken, model, getMicrophoneCallback);
   }
 
   /// Initially from:
@@ -87,6 +88,7 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
   Future<bool> _init(
     String ephemeralApiToken,
     RealtimeModel model,
+    Future<dynamic> Function()? getMicrophoneCallback,
   ) async {
     _log(Level.FINER, 'init(...)');
     try {
@@ -94,6 +96,13 @@ class RealtimeTransportWebRTC extends RealtimeTransport {
         // ICE/STUN is not needed to talk to *server* (only needed for peer-to-peer)
       };
       _peerConnection = await createPeerConnection(configuration);
+
+      if (getMicrophoneCallback != null) {
+        _localStream = await getMicrophoneCallback() as MediaStream;
+        _localStream?.getTracks().forEach((track) {
+          _peerConnection!.addTrack(track, _localStream!);
+        });
+      }
 
       final offerConstraints = <String, dynamic>{
         'mandatory': {

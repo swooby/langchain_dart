@@ -82,10 +82,12 @@ class RealtimeAPI extends RealtimeEventHandler {
   Future<bool> connect({
     final RealtimeModel model = RealtimeUtils.defaultModel,
     final SessionConfig? sessionConfig,
+    final Future<dynamic> Function()? getMicrophoneCallback,
   }) {
     return _transport.connect(
       model: model,
       sessionConfig: sessionConfig,
+      getMicrophoneCallback: getMicrophoneCallback,
     );
   }
 
